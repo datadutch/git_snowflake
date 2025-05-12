@@ -36,7 +36,8 @@ def create_stage():
                     cur.execute(f'USE DATABASE {database}')
                     cur.execute(f'USE SCHEMA {schema}')
                     cur.execute("CREATE OR REPLACE STAGE st_notebook")
-                    print("Stage 'st_notebook' created successfully.")
+                    cur.execute("ALTER STAGE st_notebook SET DIRECTORY = TRUE")  # Enable directory table
+                    print("Stage 'st_notebook' created successfully with directory table enabled.")
                 except Exception as e:
                     print(f"Error while executing Snowflake commands: {e}")
                     raise

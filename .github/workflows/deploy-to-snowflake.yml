@@ -22,12 +22,6 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      - name: Run retrieve_secrets.py
-        run: |
-          python retrieve_secrets.py
-        env:
-          SF_SECRETS: ${{ secrets.SF_SECRETS }}
-
       - name: Debug OpenSSL
         run: |
           openssl version
