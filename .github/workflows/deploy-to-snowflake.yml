@@ -28,6 +28,11 @@ jobs:
         env:
           SF_SECRETS: ${{ secrets.SF_SECRETS }}
 
+      - name: Debug OpenSSL
+        run: |
+          openssl version
+          ls -l /usr/lib | grep ssl
+
       - name: Run retrieve_and_create_stage.py
         env:
           SF_SECRETS: ${{ secrets.SF_SECRETS }}
