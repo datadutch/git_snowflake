@@ -79,9 +79,52 @@ def upload_notebooks_to_stage():
         print(f"Error in upload_notebooks_to_stage: {e}")
         raise
 
+def process_gz_and_create_notebook():
+    try:
+        # Retrieve Snowflake credentials
+        user, password, account, database, schema, warehouse = get_snowflake_secrets()
+
+        # Connect to Snowflake and process .gz files
+        with snowflake.connector.connect(
+            user=user,
+            password=password,
+            account=account
+        ) as conn:
+            with conn.cursor() as cur:
+                try:
+                    cur.execute(f'USE DATABASE {database}')
+                    cur.execute(f'USE SCHEMA {schema}')
+                    cur.execute(f'USE WAREHOUSE {warehouse}')
+
+                    # List files in the stage
+                    cur.execute("LIST @st_notebook")
+                    files = cur.fetchall()
+
+                    for file in files:
+                        file_name = file[0]
+                        if file_name.endswith(".gz"):
+                            # Extract the .gz file
+                            cur.execute(f"GET @st_notebook/{file_name} file://./")
+                            local_file = file_name.split('/')[-1]
+                            extracted_file = local_file.replace('.gz', '')
+
+                            # Unzip the .gz file
+                            os.system(f"gunzip -f {local_file}")
+
+                            # Create notebook as a Snowflake notebook
+                            cur.execute(f"CREATE OR REPLACE NOTEBOOK {extracted_file} AS SELECT * FROM @%{extracted_file}")
+                            print(f"Processed and created notebook for {extracted_file}.")
+                except Exception as e:
+                    print(f"Error while processing .gz files: {e}")
+                    raise
+    except Exception as e:
+        print(f"Error in process_gz_and_create_notebook: {e}")
+        raise
+
 if __name__ == "__main__":
     try:
         create_stage()
         upload_notebooks_to_stage()
+        process_gz_and_create_notebook()
     except Exception as e:
         print(f"Unhandled error: {e}")
