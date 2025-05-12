@@ -32,7 +32,7 @@ jobs:
 
       - name: Load Snowflake secrets from config.json
         run: |
-          CONFIG_FILE=git_snowflake/config.json
+          CONFIG_FILE=config.json
           export SNOWFLAKE_ACCOUNT=$(jq -r '.account' $CONFIG_FILE)
           export SNOWFLAKE_USER=$(jq -r '.user' $CONFIG_FILE)
           export SNOWFLAKE_PASSWORD=$(jq -r '.password' $CONFIG_FILE)
