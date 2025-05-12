@@ -16,11 +16,14 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.8'
+          python-version: '3.9'
 
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
+          # Install and register the python3 kernel
+          pip install ipykernel
+          python -m ipykernel install --user --name python3 --display-name "Python 3"
 
       - name: Execute Jupyter Notebook
         run: |
