@@ -33,6 +33,19 @@ jobs:
           openssl version
           ls -l /usr/lib | grep ssl
 
+      - name: Set OpenSSL Path
+        run: |
+          export LD_LIBRARY_PATH=/usr/lib/ssl:$LD_LIBRARY_PATH
+
+      - name: Debug OpenSSL Path
+        run: |
+          echo $LD_LIBRARY_PATH
+
+      - name: Reinstall Snowflake Connector
+        run: |
+          pip uninstall snowflake-connector-python -y
+          pip install snowflake-connector-python
+
       - name: Run retrieve_and_create_stage.py
         env:
           SF_SECRETS: ${{ secrets.SF_SECRETS }}
