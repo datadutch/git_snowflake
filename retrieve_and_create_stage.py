@@ -44,8 +44,42 @@ def create_stage():
         print(f"Error in create_stage: {e}")
         raise
 
+def upload_notebooks_to_stage():
+    try:
+        # Retrieve Snowflake credentials
+        user, password, account, database, schema, warehouse = get_snowflake_secrets()
+
+        # Connect to Snowflake and upload notebooks
+        with snowflake.connector.connect(
+            user=user,
+            password=password,
+            account=account
+        ) as conn:
+            with conn.cursor() as cur:
+                try:
+                    cur.execute(f'USE DATABASE {database}')
+                    cur.execute(f'USE SCHEMA {schema}')
+
+                    # Path to the notebooks directory
+                    notebooks_dir = "./notebooks"
+
+                    # Iterate through all files in the notebooks directory
+                    for root, _, files in os.walk(notebooks_dir):
+                        for file in files:
+                            if file.endswith(".ipynb"):
+                                file_path = os.path.join(root, file)
+                                cur.execute(f"PUT 'file://{file_path}' @st_notebook")
+                                print(f"Uploaded {file} to stage 'st_notebook'.")
+                except Exception as e:
+                    print(f"Error while uploading notebooks: {e}")
+                    raise
+    except Exception as e:
+        print(f"Error in upload_notebooks_to_stage: {e}")
+        raise
+
 if __name__ == "__main__":
     try:
         create_stage()
+        upload_notebooks_to_stage()
     except Exception as e:
         print(f"Unhandled error: {e}")
