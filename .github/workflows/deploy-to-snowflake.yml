@@ -25,3 +25,5 @@ jobs:
       - name: Run retrieve_secrets.py
         run: |
           python retrieve_secrets.py
+    env:
+        SF_SECRETS: ${{ secrets.SF_SECRETS }}
