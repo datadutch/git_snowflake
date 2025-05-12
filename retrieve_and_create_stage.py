@@ -35,6 +35,7 @@ def create_stage():
                 try:
                     cur.execute(f'USE DATABASE {database}')
                     cur.execute(f'USE SCHEMA {schema}')
+                    cur.execute(f'USE WAREHOUSE {warehouse}')  # Activate the warehouse
                     cur.execute("CREATE OR REPLACE STAGE st_notebook")
                     cur.execute("ALTER STAGE st_notebook SET DIRECTORY = (ENABLE=TRUE, AUTO_REFRESH=FALSE)")  # Corrected syntax for enabling directory table
                     print("Stage 'st_notebook' created successfully with directory table enabled.")
