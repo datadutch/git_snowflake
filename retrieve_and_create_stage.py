@@ -21,20 +21,31 @@ def get_snowflake_secrets():
         raise
 
 def create_stage():
-    # Retrieve Snowflake credentials
-    user, password, account, database, schema, warehouse = get_snowflake_secrets()
+    try:
+        # Retrieve Snowflake credentials
+        user, password, account, database, schema, warehouse = get_snowflake_secrets()
 
-    # Connect to Snowflake and create the stage
-    with snowflake.connector.connect(
-        user=user,
-        password=password,
-        account=account
-    ) as conn:
-        with conn.cursor() as cur:
-            cur.execute(f'USE DATABASE {database}')
-            cur.execute(f'USE SCHEMA {schema}')
-            cur.execute("CREATE OR REPLACE STAGE st_notebook")
-            print("Stage 'st_notebook' created successfully.")
+        # Connect to Snowflake and create the stage
+        with snowflake.connector.connect(
+            user=user,
+            password=password,
+            account=account
+        ) as conn:
+            with conn.cursor() as cur:
+                try:
+                    cur.execute(f'USE DATABASE {database}')
+                    cur.execute(f'USE SCHEMA {schema}')
+                    cur.execute("CREATE OR REPLACE STAGE st_notebook")
+                    print("Stage 'st_notebook' created successfully.")
+                except Exception as e:
+                    print(f"Error while executing Snowflake commands: {e}")
+                    raise
+    except Exception as e:
+        print(f"Error in create_stage: {e}")
+        raise
 
 if __name__ == "__main__":
-    create_stage()
+    try:
+        create_stage()
+    except Exception as e:
+        print(f"Unhandled error: {e}")
