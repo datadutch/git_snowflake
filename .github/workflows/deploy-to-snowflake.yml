@@ -21,32 +21,11 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          # Install and register the python3 kernel
-          pip install ipykernel
-          python -m ipykernel install --user --name python3 --display-name "Python 3"
 
-      - name: Execute Jupyter Notebook
+      - name: Run create_stage.py
         run: |
-          pip install nbconvert
-          jupyter nbconvert --to notebook --execute notebooks/SFBIDUTCH_2025-05-04_20-41-02.ipynb --output-dir=notebooks --output=SFBIDUTCH_2025-05-04_20-41-02_executed.ipynb
-
-      - name: Load Snowflake secrets from config.json
-        run: |
-          CONFIG_FILE=config.json
-          export SNOWFLAKE_ACCOUNT=$(jq -r '.account' $CONFIG_FILE)
-          export SNOWFLAKE_USER=$(jq -r '.user' $CONFIG_FILE)
-          export SNOWFLAKE_PASSWORD=$(jq -r '.password' $CONFIG_FILE)
-          export SNOWFLAKE_DATABASE=$(jq -r '.database' $CONFIG_FILE)
-          export SNOWFLAKE_SCHEMA=$(jq -r '.schema' $CONFIG_FILE)
-
-      - name: Deploy to Snowflake
-        env:
-          SNOWFLAKE_ACCOUNT: $SNOWFLAKE_ACCOUNT
-          SNOWFLAKE_USER: $SNOWFLAKE_USER
-          SNOWFLAKE_PASSWORD: $SNOWFLAKE_PASSWORD
-          SNOWFLAKE_DATABASE: $SNOWFLAKE_DATABASE
-          SNOWFLAKE_SCHEMA: $SNOWFLAKE_SCHEMA
-          SF_SECRETS: ${{ secrets.SF_SECRETS }}
-        run: |
-          echo "Deploying executed notebook to Snowflake..."
           python create_stage.py
+
+      - name: Run put_notebook.py
+        run: |
+          python put_notebook.py
