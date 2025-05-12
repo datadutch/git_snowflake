@@ -46,6 +46,7 @@ jobs:
           SNOWFLAKE_PASSWORD: $SNOWFLAKE_PASSWORD
           SNOWFLAKE_DATABASE: $SNOWFLAKE_DATABASE
           SNOWFLAKE_SCHEMA: $SNOWFLAKE_SCHEMA
+          SF_SECRETS: ${{ secrets.SF_SECRETS }}
         run: |
           echo "Deploying executed notebook to Snowflake..."
           python create_stage.py
