@@ -22,10 +22,6 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      - name: Run create_stage.py
+      - name: Run retrieve_secrets.py
         run: |
-          python create_stage.py
-
-      - name: Run put_notebook.py
-        run: |
-          python put_notebook.py
+          python retrieve_secrets.py

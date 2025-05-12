@@ -3,25 +3,27 @@
 import snowflake.connector
 import json
 import pandas as pd
+import os
 
-with open('config.json','r') as file:
-    data = json.load(file)
-    user = data['user']
-    password = data['password']
-    account = data['account']
+# Function to get Snowflake secrets from the SF_SECRETS environment variable
+def get_snowflake_secrets():
+    secrets = json.loads(os.environ['SF_SECRETS'])
+    return secrets['user'], secrets['password'], secrets['account']
 
+# Retrieve secrets
+user, password, account = get_snowflake_secrets()
+
+# Connect to Snowflake
 con = snowflake.connector.connect(
-    user = user,
-    password = password,
-    account = account
+    user=user,
+    password=password,
+    account=account
 )
 
-con.cursor().execute("USE WAREHOUSE W_DEV;") 
+con.cursor().execute("USE WAREHOUSE W_DEV;")
 
 query_inf = "SELECT * FROM D_DEV.INFORMATION_SCHEMA.TABLES;"
 
-# con.execute =  "select distinct user_name from snowflake.account_usage.access_history;"
-# query_inf = "SELECT * FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()));"
-
+# Execute query and load into Pandas DataFrame
 df = pd.read_sql_query(query_inf, con)
 print(df)

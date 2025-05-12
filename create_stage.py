@@ -3,8 +3,17 @@ import os
 import json
 
 def get_snowflake_secrets():
-    secrets = json.loads(os.environ['SF_SECRETS'])
-    return secrets['user'], secrets['password'], secrets['account'], secrets['database'], secrets['schema'], secrets['warehouse']
+    try:
+        secrets = os.environ['SF_SECRETS']
+        print("SF_SECRETS successfully retrieved.")  # Debugging line
+        secrets = json.loads(secrets)
+        return secrets['user'], secrets['password'], secrets['account'], secrets['database'], secrets['schema'], secrets['warehouse']
+    except KeyError as e:
+        print(f"Environment variable {str(e)} is missing.")
+        raise
+    except json.JSONDecodeError:
+        print("Failed to decode SF_SECRETS. Ensure it is valid JSON.")
+        raise
 
 def create_stage():
     user, password, account, database, schema, warehouse = get_snowflake_secrets()
