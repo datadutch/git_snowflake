@@ -1,0 +1,47 @@
+name: Deploy Jupyter Notebook to Snowflake
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Execute Jupyter Notebook
+        run: |
+          pip install nbconvert
+          jupyter nbconvert --to notebook --execute notebooks/SFBIDUTCH_2025-05-04_20-41-02.ipynb --output-dir=notebooks --output=SFBIDUTCH_2025-05-04_20-41-02_executed.ipynb
+
+      - name: Load Snowflake secrets from config.json
+        run: |
+          CONFIG_FILE=git_snowflake/config.json
+          export SNOWFLAKE_ACCOUNT=$(jq -r '.account' $CONFIG_FILE)
+          export SNOWFLAKE_USER=$(jq -r '.user' $CONFIG_FILE)
+          export SNOWFLAKE_PASSWORD=$(jq -r '.password' $CONFIG_FILE)
+          export SNOWFLAKE_DATABASE=$(jq -r '.database' $CONFIG_FILE)
+          export SNOWFLAKE_SCHEMA=$(jq -r '.schema' $CONFIG_FILE)
+
+      - name: Deploy to Snowflake
+        env:
+          SNOWFLAKE_ACCOUNT: $SNOWFLAKE_ACCOUNT
+          SNOWFLAKE_USER: $SNOWFLAKE_USER
+          SNOWFLAKE_PASSWORD: $SNOWFLAKE_PASSWORD
+          SNOWFLAKE_DATABASE: $SNOWFLAKE_DATABASE
+          SNOWFLAKE_SCHEMA: $SNOWFLAKE_SCHEMA
+        run: |
+          echo "Deploying executed notebook to Snowflake..."
