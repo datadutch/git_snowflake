@@ -34,7 +34,7 @@ jobs:
       - name: Reinstall Snowflake Connector
         run: |
           pip uninstall snowflake-connector-python -y
-          pip install snowflake-connector-python
+          pip install --upgrade snowflake-connector-python
 
       - name: Run create_notebook.py
         env:
