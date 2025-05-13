@@ -41,9 +41,9 @@ def create_notebook_from_stage():
                     cur.execute(f'USE DATABASE {database}')
                     cur.execute(f'USE SCHEMA {schema}')
                     cur.execute(f'USE WAREHOUSE {warehouse}')
-                    # Compose the full identifier and path
-                    notebook_identifier = f'IDENTIFIER(\"{database}\".\"{schema}\".\"{notebook_name}\")'
-                    stage_path = f'@\"{database}\".\"{schema}\".\"{stage_name}\"/branches/\"{branch}\"/{notebook_name}/'
+                    # Compose the full identifier and path (no IDENTIFIER() wrapper)
+                    notebook_identifier = f'"{database}"."{schema}"."{notebook_name}"'
+                    stage_path = f'@"{database}"."{schema}"."{stage_name}"/branches/"{branch}"/{notebook_name}/'
                     sql = f"""
                         CREATE NOTEBOOK {notebook_identifier}
                         FROM '{stage_path}'
