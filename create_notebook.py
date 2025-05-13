@@ -31,6 +31,13 @@ def get_notebook_name_from_commit():
                 notebook_name = os.path.splitext(os.path.basename(file))[0]
                 print(f"Notebook name from commit: {notebook_name}")
                 return notebook_name
+        # Fallback: check for notebooks in the known directory
+        notebooks_dir = os.path.join(os.path.dirname(__file__), 'notebooks')
+        for file in os.listdir(notebooks_dir):
+            if file.endswith('.ipynb'):
+                notebook_name = os.path.splitext(file)[0]
+                print(f"Notebook name from notebooks directory: {notebook_name}")
+                return notebook_name
         # Fallback: try commit message as before
         commit_msg = subprocess.check_output(['git', 'log', '-1', '--pretty=%B'], encoding='utf-8').strip()
         import re
@@ -40,7 +47,7 @@ def get_notebook_name_from_commit():
             notebook_name = notebook_file.replace('.ipynb', '')
             print(f"Notebook name from commit message: {notebook_name}")
             return notebook_name
-        print("No notebook name found in commit files or message. Using default.")
+        print("No notebook name found in commit files, notebooks directory, or message. Using default.")
         return os.environ.get('NOTEBOOK_NAME', 'MyFirstNoteBook')
     except Exception as e:
         print(f"Error extracting notebook name from commit: {e}")
