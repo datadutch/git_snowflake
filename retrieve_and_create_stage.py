@@ -20,71 +20,17 @@ def get_snowflake_secrets():
         print("Failed to decode SF_SECRETS. Ensure it is valid JSON.")
         raise
 
-def create_stage():
+def create_notebook_from_stage():
     try:
-        # Retrieve Snowflake credentials
         user, password, account, database, schema, warehouse = get_snowflake_secrets()
+        notebook_name = os.environ.get('NOTEBOOK_NAME', 'SFBIDUTCH 2025-05-04 20:41:02')
+        main_file = f"{notebook_name}.ipynb"
+        branch = os.environ.get('GIT_BRANCH', 'main')
+        runtime_name = os.environ.get('RUNTIME_NAME', 'SYSTEM$WAREHOUSE_RUNTIME')
+        query_warehouse = os.environ.get('QUERY_WAREHOUSE', 'W_DEV')
+        warehouse_name = os.environ.get('WAREHOUSE_NAME', 'SYSTEM$STREAMLIT_NOTEBOOK_WH')
+        stage_name = os.environ.get('STAGE_NAME', 'GIT_SNOWFLAKE')
 
-        # Connect to Snowflake and create the stage
-        with snowflake.connector.connect(
-            user=user,
-            password=password,
-            account=account
-        ) as conn:
-            with conn.cursor() as cur:
-                try:
-                    cur.execute(f'USE DATABASE {database}')
-                    cur.execute(f'USE SCHEMA {schema}')
-                    cur.execute(f'USE WAREHOUSE {warehouse}')  # Activate the warehouse
-                    cur.execute("CREATE OR REPLACE STAGE st_notebook")
-                    cur.execute("ALTER STAGE st_notebook SET DIRECTORY = (ENABLE=TRUE, AUTO_REFRESH=FALSE)")  # Corrected syntax for enabling directory table
-                    print("Stage 'st_notebook' created successfully with directory table enabled.")
-                except Exception as e:
-                    print(f"Error while executing Snowflake commands: {e}")
-                    raise
-    except Exception as e:
-        print(f"Error in create_stage: {e}")
-        raise
-
-def upload_notebooks_to_stage():
-    try:
-        # Retrieve Snowflake credentials
-        user, password, account, database, schema, warehouse = get_snowflake_secrets()
-
-        # Connect to Snowflake and upload notebooks
-        with snowflake.connector.connect(
-            user=user,
-            password=password,
-            account=account
-        ) as conn:
-            with conn.cursor() as cur:
-                try:
-                    cur.execute(f'USE DATABASE {database}')
-                    cur.execute(f'USE SCHEMA {schema}')
-
-                    # Path to the notebooks directory
-                    notebooks_dir = "./notebooks"
-
-                    # Iterate through all files in the notebooks directory
-                    for root, _, files in os.walk(notebooks_dir):
-                        for file in files:
-                            if file.endswith(".ipynb"):
-                                file_path = os.path.join(root, file)
-                                cur.execute(f"PUT 'file://{file_path}' @st_notebook")
-                                print(f"Uploaded {file} to stage 'st_notebook'.")
-                except Exception as e:
-                    print(f"Error while uploading notebooks: {e}")
-                    raise
-    except Exception as e:
-        print(f"Error in upload_notebooks_to_stage: {e}")
-        raise
-
-def process_gz_and_create_notebook():
-    try:
-        # Retrieve Snowflake credentials
-        user, password, account, database, schema, warehouse = get_snowflake_secrets()
-
-        # Connect to Snowflake and process .gz files
         with snowflake.connector.connect(
             user=user,
             password=password,
@@ -95,36 +41,28 @@ def process_gz_and_create_notebook():
                     cur.execute(f'USE DATABASE {database}')
                     cur.execute(f'USE SCHEMA {schema}')
                     cur.execute(f'USE WAREHOUSE {warehouse}')
-
-                    # List files in the stage
-                    cur.execute("LIST @st_notebook")
-                    files = cur.fetchall()
-
-                    for file in files:
-                        file_name = file[0]
-                        if file_name.endswith(".gz"):
-                            # Extract the .gz file
-                            cur.execute(f"GET @st_notebook/{file_name} file://./")
-                            local_file = file_name.split('/')[-1]
-                            extracted_file = local_file.replace('.gz', '')
-
-                            # Unzip the .gz file
-                            os.system(f"gunzip -f {local_file}")
-
-                            # Create notebook as a Snowflake notebook
-                            cur.execute(f"CREATE OR REPLACE NOTEBOOK {extracted_file} AS SELECT * FROM @%{extracted_file}")
-                            print(f"Processed and created notebook for {extracted_file}.")
+                    # Compose the full identifier and path
+                    notebook_identifier = f'IDENTIFIER(\"{database}\".\"{schema}\".\"{notebook_name}\")'
+                    stage_path = f'@\"{database}\".\"{schema}\".\"{stage_name}\"/branches/\"{branch}\"/{notebook_name}/'
+                    sql = f"""
+                        CREATE NOTEBOOK {notebook_identifier}
+                        FROM '{stage_path}'
+                        WAREHOUSE = '{warehouse_name}'
+                        QUERY_WAREHOUSE = '{query_warehouse}'
+                        RUNTIME_NAME = '{runtime_name}'
+                        MAIN_FILE = '{main_file}'
+                    """
+                    cur.execute(sql)
+                    print(f"Notebook {notebook_name} created successfully from stage.")
                 except Exception as e:
-                    print(f"Error while processing .gz files: {e}")
+                    print(f"Error while creating notebook: {e}")
                     raise
     except Exception as e:
-        print(f"Error in process_gz_and_create_notebook: {e}")
+        print(f"Error in create_notebook_from_stage: {e}")
         raise
 
 if __name__ == "__main__":
     try:
-        create_stage()
-        upload_notebooks_to_stage()
-        process_gz_and_create_notebook()
+        create_notebook_from_stage()
     except Exception as e:
         print(f"Unhandled error: {e}")
