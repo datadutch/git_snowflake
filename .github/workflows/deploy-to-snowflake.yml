@@ -22,8 +22,22 @@ jobs:
         run: |
           pip install -r requirements.txt
 
+      - name: Install OpenSSL 1.1
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libssl1.1
+
+      - name: Set OpenSSL Path
+        run: |
+          echo "LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+
+      - name: Reinstall Snowflake Connector
+        run: |
+          pip uninstall snowflake-connector-python -y
+          pip install snowflake-connector-python
+
       - name: Run create_notebook.py
         env:
           SF_SECRETS: ${{ secrets.SF_SECRETS }}
         run: |
-          python create_notebook.py
+          python git_snowflake/create_notebook.py
