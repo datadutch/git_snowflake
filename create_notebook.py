@@ -20,10 +20,30 @@ def get_snowflake_secrets():
         print("Failed to decode SF_SECRETS. Ensure it is valid JSON.")
         raise
 
+def get_notebook_name_from_commit():
+    # Try to get the notebook name from the latest git commit message
+    try:
+        import subprocess
+        commit_msg = subprocess.check_output(['git', 'log', '-1', '--pretty=%B'], encoding='utf-8').strip()
+        # Extract notebook name from commit message (assume it's the first .ipynb file mentioned)
+        import re
+        match = re.search(r'([\w\- ]+\.ipynb)', commit_msg)
+        if match:
+            notebook_file = match.group(1)
+            notebook_name = notebook_file.replace('.ipynb', '')
+            print(f"Notebook name from commit: {notebook_name}")
+            return notebook_name
+        else:
+            print("No notebook name found in commit message. Using default.")
+            return os.environ.get('NOTEBOOK_NAME', 'MyFirstNoteBook')
+    except Exception as e:
+        print(f"Error extracting notebook name from commit: {e}")
+        return os.environ.get('NOTEBOOK_NAME', 'MyFirstNoteBook')
+
 def create_notebook_from_stage():
     try:
         user, password, account, database, schema, warehouse = get_snowflake_secrets()
-        notebook_name = os.environ.get('NOTEBOOK_NAME', 'SFBIDUTCH 2025-05-04 20:41:02')
+        notebook_name = get_notebook_name_from_commit()
         main_file = f"{notebook_name}.ipynb"
         branch = os.environ.get('GIT_BRANCH', 'main')
         runtime_name = os.environ.get('RUNTIME_NAME', 'SYSTEM$WAREHOUSE_RUNTIME')
