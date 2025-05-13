@@ -21,21 +21,27 @@ def get_snowflake_secrets():
         raise
 
 def get_notebook_name_from_commit():
-    # Try to get the notebook name from the latest git commit message
+    # Try to get the notebook name from the latest git commit (including added/modified files)
     try:
         import subprocess
+        # Get the list of files changed in the last commit
+        files = subprocess.check_output(['git', 'diff-tree', '--no-commit-id', '--name-only', '-r', 'HEAD'], encoding='utf-8').splitlines()
+        for file in files:
+            if file.endswith('.ipynb'):
+                notebook_name = os.path.splitext(os.path.basename(file))[0]
+                print(f"Notebook name from commit: {notebook_name}")
+                return notebook_name
+        # Fallback: try commit message as before
         commit_msg = subprocess.check_output(['git', 'log', '-1', '--pretty=%B'], encoding='utf-8').strip()
-        # Extract notebook name from commit message (assume it's the first .ipynb file mentioned)
         import re
         match = re.search(r'([\w\- ]+\.ipynb)', commit_msg)
         if match:
             notebook_file = match.group(1)
             notebook_name = notebook_file.replace('.ipynb', '')
-            print(f"Notebook name from commit: {notebook_name}")
+            print(f"Notebook name from commit message: {notebook_name}")
             return notebook_name
-        else:
-            print("No notebook name found in commit message. Using default.")
-            return os.environ.get('NOTEBOOK_NAME', 'MyFirstNoteBook')
+        print("No notebook name found in commit files or message. Using default.")
+        return os.environ.get('NOTEBOOK_NAME', 'MyFirstNoteBook')
     except Exception as e:
         print(f"Error extracting notebook name from commit: {e}")
         return os.environ.get('NOTEBOOK_NAME', 'MyFirstNoteBook')
