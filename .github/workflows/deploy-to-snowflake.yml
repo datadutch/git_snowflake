@@ -35,4 +35,4 @@ jobs:
         env:
           SF_SECRETS: ${{ secrets.SF_SECRETS }}
         run: |
-          python git_snowflake/create_notebook.py
+          python create_notebook.py
