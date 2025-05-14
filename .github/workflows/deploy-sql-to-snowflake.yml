@@ -1,14 +1,15 @@
-name: Deploy Jupyter Notebook to Snowflake
+name: Deploy SQL Files to Snowflake
 
 on:
   push:
+    paths:
+      - '**/*.sql'
     branches:
       - main
 
 jobs:
-  deploy:
+  deploy-sql:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -31,8 +32,8 @@ jobs:
           pip uninstall snowflake-connector-python -y
           pip install --upgrade snowflake-connector-python
 
-      - name: Run create_notebook.py
+      - name: Deploy SQL files to Snowflake
         env:
           SF_SECRETS: ${{ secrets.SF_SECRETS }}
         run: |
-          python create_notebook.py
+          python create_stage.py # or your script for SQL deployment

@@ -1,0 +1,40 @@
+name: Deploy Jupyter Notebook to Snowflake
+
+on:
+  push:
+    paths:
+      - '**/*.ipynb'
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Set OpenSSL Path
+        run: |
+          echo "LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH" >> $GITHUB_ENV
+
+      - name: Reinstall Snowflake Connector
+        run: |
+          pip uninstall snowflake-connector-python -y
+          pip install --upgrade snowflake-connector-python
+
+      - name: Run create_notebook.py
+        env:
+          SF_SECRETS: ${{ secrets.SF_SECRETS }}
+        run: |
+          python create_notebook.py
