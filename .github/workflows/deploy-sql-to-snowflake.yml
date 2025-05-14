@@ -36,4 +36,4 @@ jobs:
         env:
           SF_SECRETS: ${{ secrets.SF_SECRETS }}
         run: |
-          echo "Deploy SQL logic goes here"
+          python run_sql_files.py
