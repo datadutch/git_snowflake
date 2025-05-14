@@ -27,7 +27,7 @@ with snowflake.connector.connect(
         # Get only the .sql files changed in the current commit
         try:
             changed_files = subprocess.check_output([
-                'git', 'diff-tree', '--no-commit-id', '--name-only', '-r', 'HEAD'
+                'git', 'diff', '--name-only', 'origin/main...HEAD'
             ], encoding='utf-8').splitlines()
             print(f"Changed files in commit: {changed_files}")
             sql_files = [f for f in changed_files if f.startswith('sql/') and f.endswith('.sql')]
