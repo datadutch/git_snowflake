@@ -1,6 +1,7 @@
 import os
 import json
 import snowflake.connector
+import subprocess
 
 # Retrieve secrets from environment
 secret_name = "SF_SECRETS"
@@ -22,13 +23,22 @@ with snowflake.connector.connect(
         cur.execute(f'USE DATABASE {database}')
         cur.execute(f'USE SCHEMA {schema}')
         cur.execute(f'USE WAREHOUSE {warehouse}')
-        sql_dir = os.path.join(os.path.dirname(__file__), 'sql')
-        for sqlfile in os.listdir(sql_dir):
-            if sqlfile.endswith('.sql'):
-                sql_path = os.path.join(sql_dir, sqlfile)
-                print(f"Running {sql_path} on Snowflake...")
-                with open(sql_path) as f:
-                    sql = f.read()
-                for stmt in sql.split(';'):
-                    if stmt.strip():
-                        cur.execute(stmt)
+        
+        # Get only the .sql files changed in the current commit
+        try:
+            changed_files = subprocess.check_output([
+                'git', 'diff-tree', '--no-commit-id', '--name-only', '-r', 'HEAD'
+            ], encoding='utf-8').splitlines()
+            sql_files = [f for f in changed_files if f.startswith('sql/') and f.endswith('.sql')]
+        except Exception as e:
+            print(f"Error detecting changed SQL files: {e}")
+            sql_files = []
+
+        for sqlfile in sql_files:
+            sql_path = os.path.join(os.path.dirname(__file__), sqlfile)
+            print(f"Running {sql_path} on Snowflake...")
+            with open(sql_path) as f:
+                sql = f.read()
+            for stmt in sql.split(';'):
+                if stmt.strip():
+                    cur.execute(stmt)
