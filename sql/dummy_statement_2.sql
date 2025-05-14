@@ -1,5 +1,5 @@
 -- Dummy SQL statement for testing deployment
-CREATE OR REPLACE TABLE dummy_table (
+CREATE OR REPLACE TABLE dummy_table_2 (
     id INT,
     name STRING,
     created_at TIMESTAMP,
