@@ -7,5 +7,6 @@ CREATE OR REPLACE TABLE dummy_table (
     PRIMARY KEY (id),
     description STRING,
     status STRING,
-) COMMENT = 'Dummy table for testing deployment'
+    code integer
+    ) COMMENT = 'Dummy table for testing deployment'
 ;
