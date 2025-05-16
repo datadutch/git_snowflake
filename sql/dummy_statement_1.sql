@@ -5,6 +5,6 @@ CREATE OR REPLACE TABLE dummy_table (
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     PRIMARY KEY (id),
-    member char(10)
+    member char(20)
 ) COMMENT = 'Dummy table for testing deployment'
 ;
